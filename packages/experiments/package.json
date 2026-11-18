@@ -1,0 +1,18 @@
+{
+  "name": "@vixir/experiments",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./schema": "./experiment.schema.json",
+    "./phy.pendulum.g/v1": "./phy.pendulum.g/v1.json"
+  },
+  "scripts": {
+    "validate": "node scripts/validate.mjs",
+    "lint": "node scripts/validate.mjs",
+    "test": "node scripts/validate.mjs"
+  },
+  "devDependencies": {
+    "ajv": "^8.20.0"
+  }
+}

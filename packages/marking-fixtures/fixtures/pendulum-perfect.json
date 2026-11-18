@@ -1,0 +1,18 @@
+{
+  "name": "Pendulum — readings straight from the simulation, exact arithmetic",
+  "experiment": "phy.pendulum.g@1",
+  "submission": {
+    "rows": [
+      { "L": 0.400, "t1": 25.44, "t2": 25.40, "tMean": 25.42, "T": 1.271, "T2": 1.615 },
+      { "L": 0.500, "t1": 28.31, "t2": 28.25, "tMean": 28.28, "T": 1.414, "T2": 1.999 },
+      { "L": 0.600, "t1": 31.05, "t2": 31.11, "tMean": 31.08, "T": 1.554, "T2": 2.415 },
+      { "L": 0.700, "t1": 33.55, "t2": 33.61, "tMean": 33.58, "T": 1.679, "T2": 2.819 },
+      { "L": 0.800, "t1": 35.90, "t2": 35.86, "tMean": 35.88, "T": 1.794, "T2": 3.218 },
+      { "L": 0.900, "t1": 38.06, "t2": 38.10, "tMean": 38.08, "T": 1.904, "T2": 3.625 }
+    ],
+    "slopePoints": [{ "x": 0.425, "y": 1.711 }, { "x": 0.875, "y": 3.520 }],
+    "derived": { "g": 9.82 },
+    "precautions": ["I avoided parallax by keeping my eye level with the mark", "I kept the angle of swing small"]
+  },
+  "expected": { "total": 20, "criteria": { "readings": 6, "table": 3, "graph": 5, "derived": 4, "precautions": 2 } }
+}

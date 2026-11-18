@@ -1,0 +1,8 @@
+{
+  "app.name": "Vixir",
+  "landing.headline": "Every student deserves a real practical.",
+  "landing.sub": "An open-source virtual lab for physics, chemistry, biology, electronics and engineering.",
+  "errors.CLASS_CODE_INVALID": "That class code doesn't match any class. Check it with your teacher.",
+  "errors.DUE_DATE_PASSED": "This assignment is past its due date.",
+  "errors.ATTEMPT_LOCKED": "This attempt has already been submitted."
+}

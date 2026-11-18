@@ -1,0 +1,24 @@
+{
+  "name": "vixir",
+  "private": true,
+  "description": "Vixir — open-source virtual practical laboratory",
+  "license": "MIT",
+  "packageManager": "pnpm@10.0.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "turbo run dev --filter=@vixir/web",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "test:props": "turbo run test:props",
+    "validate:experiments": "pnpm --filter @vixir/experiments validate"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "turbo": "^2.11.13",
+    "typescript": "^7.0.2"
+  }
+}

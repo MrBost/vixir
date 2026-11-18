@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #2448D8;
+  --color-primary-strong: #1A36A8;
+  --color-primary-soft: #EAEFFE;
+  --color-ink: #0E1726;
+  --color-muted: #5B6576;
+  --color-line: #E3E8EF;
+  --color-page: #F5F7FA;
+  --color-lab-bg: #0B1220;
+  --color-lab-panel: #121A2B;
+  --color-lab-line: #22304A;
+  --font-heading: "Space Grotesk", system-ui, sans-serif;
+  --font-sans: Inter, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+body { @apply bg-page text-ink font-sans; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
