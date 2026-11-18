@@ -27,3 +27,7 @@ Add an entry every time a Kiro feature saves real time or changes the outcome. K
 | 2026-11-18 | Folajimi | Screen A1 & A2 | Built Landing page and Auth screen from design images using Haiku 4.5 vision |
 | 2026-11-18 | Folajimi | Dev server | Started Vite dev server on localhost:5173 |
 | 2026-11-18 | Folajimi | UI Issues | Found Landing and Auth UIs poorly match design - needs redesign with proper colors and layout |
+| 2026-11-18 | Folajimi | UI Fixes | Redesigned A1 Landing and A2 Auth to match design images |
+| 2026-11-18 | Folajimi | Colors fixed | Changed to blue (#0B1220) dark background for hero section and lab showcase |
+| 2026-11-18 | Folajimi | A2 Auth fixed | Updated to use dark blue (#0B1220) on left panel with proper typography |
+| 2026-11-18 | Folajimi | Dev server | Running on localhost:5173 with HMR updates applied |

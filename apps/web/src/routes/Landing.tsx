@@ -28,11 +28,12 @@ export function Landing() {
         </nav>
       </header>
 
-      {/* Hero Section - Blue background */}
-      <section className="bg-[#0B1220] py-16 sm:py-24">
+      {/* Hero Section - Dark blue background */}
+      <section className="relative overflow-hidden bg-[#0B1220] py-16 sm:py-24">
         <div className="mx-auto max-w-7xl px-6 sm:px-8">
           <div className="grid gap-12 md:grid-cols-2 md:items-center">
-            <div className="text-white">
+            {/* Left: Text content */}
+            <div className="text-white z-10">
               <p className="text-sm font-semibold text-blue-300">Virtual practical laboratory</p>
               <h1 className="mt-3 font-heading text-5xl font-bold leading-tight sm:text-6xl">Every student deserves a real practical.</h1>
               <p className="mt-6 text-base leading-relaxed text-blue-100">
@@ -44,22 +45,15 @@ export function Landing() {
               </div>
               <p className="mt-4 text-xs text-blue-300">Built around WAEC, NECO and university first-year practicals.</p>
             </div>
-            <div className="rounded-lg bg-[#0B1220] p-8 text-white">
-              <div className="font-mono text-sm text-blue-200">Simple pendulum: g determination</div>
-              <div className="mt-8 space-y-4">
-                <div className="flex justify-between items-center border-b border-blue-800 pb-2">
-                  <span className="text-sm">Length L</span>
-                  <span className="font-mono text-lg font-semibold">68.0 cm</span>
-                </div>
-                <div className="flex justify-between items-center border-b border-blue-800 pb-2">
-                  <span className="text-sm">Time for 20 oscillations</span>
-                  <span className="font-mono text-lg font-semibold text-blue-300">31.27 s</span>
-                </div>
-                <div className="flex justify-between items-center pb-2">
-                  <span className="text-sm">Oscillations counted</span>
-                  <span className="font-mono text-lg font-semibold">1,564 s</span>
-                </div>
-              </div>
+
+            {/* Right: Animated pendulum SVG */}
+            <div className="relative">
+              <img
+                src="/illustrations/D1-physics-pendulum-bench.svg"
+                alt="Simple pendulum: g determination - swinging bob with length 70 cm"
+                className="w-full"
+                style={{ animation: 'swing 1.5s ease-in-out infinite alternate' }}
+              />
             </div>
           </div>
         </div>
