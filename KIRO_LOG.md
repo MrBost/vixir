@@ -23,3 +23,4 @@ Add an entry every time a Kiro feature saves real time or changes the outcome. K
 | 2026-11-18 | Folajimi | Hooks setup | Created `.kiro/hooks/lint-on-save.json` with `PostFileSave` trigger to run `pnpm lint` | Auto-linting on file save, catching style issues early |
 | 2026-11-18 | Folajimi | CI workflow | Added `test -f turbo.json` check to CI `web` job before running `pnpm turbo run` | CI fails fast if turbo.json is missing |
 | 2026-11-18 | Folajimi | Asset cleanup | Removed placeholder SVG files: A_logo_vixir.svg, D*.svg lab benches, apparatus SVGs (rule, dial, flask, pipette, retort, vernier) | Preparing for building screens from design images using Haiku 4.5 for vision |
+| 2026-11-18 | Folajimi | Screens (A1, A2) | Built A1 Landing and A2 Auth screens from design images using Haiku 4.5 vision | 2 P0 screens complete: responsive hero, value props, 4-step process, institution benefits, OAuth; auth form with role selection and class code |
