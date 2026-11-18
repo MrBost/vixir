@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router';
-import en from '../i18n/en.json';
 
 type Tab = 'signin' | 'signup';
 type Role = 'STUDENT' | 'TEACHER' | 'ADMIN';
@@ -22,8 +21,8 @@ export function Auth() {
 
   return (
     <div className="flex min-h-screen">
-      {/* Left: Dark side with hero message */}
-      <div className="hidden flex-1 bg-gradient-to-br from-blue-950 to-ink p-12 text-white lg:flex lg:flex-col lg:justify-center">
+      {/* Left: Dark blue side with hero message */}
+      <div className="hidden flex-1 bg-[#0B1220] p-12 text-white lg:flex lg:flex-col lg:justify-center">
         <div className="max-w-md">
           <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary text-white font-heading font-bold text-lg">
             V
@@ -32,12 +31,12 @@ export function Auth() {
           <p className="mt-6 text-base text-blue-100">
             Sign in with the account your school or department created, or join a class with the code your teacher gave you.
           </p>
-          <div className="mt-8 rounded-lg border border-blue-800 bg-blue-900/50 p-4 font-mono text-sm text-blue-200">
-            <div>g = 4π² / slope</div>
-            <div className="mt-2">slope (T² vs L) = 4.02 s² m⁻¹</div>
-            <div className="mt-2 text-green-300">g = 9.82 m s⁻² / within 2%</div>
+          <div className="mt-8 rounded-lg border border-blue-800 bg-[#0B1220] p-4 font-mono text-sm text-blue-200">
+            <div>g = 42 / slope</div>
+            <div className="mt-2">slope (T2 vs L) = 4.02 s2 m1</div>
+            <div className="mt-2 text-green-300">g = 9.82 m s2 / within 2%</div>
           </div>
-          <p className="mt-8 text-xs text-blue-300">Works offline once installed · Data stays with your institution</p>
+          <p className="mt-8 text-xs text-blue-300">Works offline once installed Data stays with your institution</p>
         </div>
       </div>
 
@@ -151,7 +150,7 @@ function SignInForm({ error, loading, onSubmit }: { error: string | null; loadin
       <p className="text-center text-xs text-muted mt-4">
         Signing in as a teacher?{' '}
         <a href="#" className="text-primary hover:underline font-medium">
-          Go to teacher view →
+          Go to teacher view
         </a>
       </p>
     </form>
