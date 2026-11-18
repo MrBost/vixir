@@ -35,3 +35,5 @@ Add an entry every time a Kiro feature saves real time or changes the outcome. K
 | 2026-11-18 | Folajimi | SVG Asset | Copied D1-physics-pendulum-bench.svg from Vixir-Screens-and-Assets | Hero section now shows pendulum bench with animated bob |
 | 2026-11-18 | Folajimi | CSS Animation | Added @keyframes swing (rotate -5deg to 5deg) in index.css | Pendulum swings back and forth in hero section |
 | 2026-11-18 | Folajimi | Dev server | Running on localhost:5173 with HMR updates applied | All changes live-reloaded |
+| 2026-11-18 | Folajimi | Pendulum Animation Fix | Bob now swings with transform-origin at pivot point (300, 74) | Bob oscillates to-and-fro while setup stays fixed |
+| 2026-11-18 | Folajimi | SVG Animation | Bob group wrapped in <g> with transform-origin attribute | Pendulum string and bob rotate from pivot, not whole SVG |
