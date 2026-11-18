@@ -31,3 +31,7 @@ Add an entry every time a Kiro feature saves real time or changes the outcome. K
 | 2026-11-18 | Folajimi | Colors fixed | Changed to blue (#0B1220) dark background for hero section and lab showcase |
 | 2026-11-18 | Folajimi | A2 Auth fixed | Updated to use dark blue (#0B1220) on left panel with proper typography |
 | 2026-11-18 | Folajimi | Dev server | Running on localhost:5173 with HMR updates applied |
+| 2026-11-18 | Folajimi | Pendulum Animation | Added swinging animation to D1 pendulum SVG in A1 hero section | Animated pendulum bob swinging with keyframe animation |
+| 2026-11-18 | Folajimi | SVG Asset | Copied D1-physics-pendulum-bench.svg from Vixir-Screens-and-Assets | Hero section now shows pendulum bench with animated bob |
+| 2026-11-18 | Folajimi | CSS Animation | Added @keyframes swing (rotate -5deg to 5deg) in index.css | Pendulum swings back and forth in hero section |
+| 2026-11-18 | Folajimi | Dev server | Running on localhost:5173 with HMR updates applied | All changes live-reloaded |
