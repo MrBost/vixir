@@ -16,9 +16,14 @@
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 }
 
+/* Pendulum animation - bob swings from pivot point */
 @keyframes swing {
   0% { transform: rotate(-5deg); }
   100% { transform: rotate(5deg); }
+}
+.pendulum-bob {
+  transform-origin: 300px 74px;
+  animation: swing 1.5s ease-in-out infinite alternate;
 }
 
 body { @apply bg-page text-ink font-sans; }
