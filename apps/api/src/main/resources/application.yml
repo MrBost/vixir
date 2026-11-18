@@ -1,0 +1,42 @@
+spring:
+  application:
+    name: vixir-api
+  datasource:
+    url: ${VIXIR_DB_URL:jdbc:postgresql://localhost:5432/vixir}
+    username: ${VIXIR_DB_USER:vixir}
+    password: ${VIXIR_DB_PASSWORD:vixir}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+  threads:
+    virtual:
+      enabled: true
+
+server:
+  port: ${PORT:8080}
+  shutdown: graceful
+
+vixir:
+  jwt-secret: ${VIXIR_JWT_SECRET:local-dev-secret-local-dev-secret-0123}
+  service-secret: ${VIXIR_SERVICE_SECRET:local-service-secret-local-service-0123}
+  web-origins: ${VIXIR_WEB_ORIGINS:http://localhost:5173}
+  experiments-dir: ${VIXIR_EXPERIMENTS_DIR:../../packages/experiments}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html

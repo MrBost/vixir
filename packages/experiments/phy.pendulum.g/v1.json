@@ -1,0 +1,71 @@
+{
+  "id": "phy.pendulum.g",
+  "version": 1,
+  "subject": "PHYSICS",
+  "title": "Simple pendulum — determination of g",
+  "aim": "Find the acceleration due to gravity from the slope of a graph of T² against L.",
+  "level": ["SS2", "SS3"],
+  "curricula": ["waec", "neco"],
+  "minutes": 35,
+  "apparatus": [
+    { "id": "stand", "name": "Retort stand", "spec": "with boss & clamp" },
+    { "id": "boss", "name": "Boss & clamp", "requires": ["stand"] },
+    { "id": "cork", "name": "Split cork", "spec": "grips string at pivot", "requires": ["boss"] },
+    { "id": "bob", "name": "String + bob", "spec": "≈ 50 g bob", "requires": ["cork"] },
+    { "id": "rule", "name": "Metre rule", "spec": "0.1 cm divisions", "requires": ["stand"] },
+    { "id": "plumb", "name": "Plumb line", "spec": "marks equilibrium", "requires": ["cork"] },
+    { "id": "stopwatch", "name": "Stopwatch", "spec": "0.01 s" }
+  ],
+  "variables": {
+    "L": { "role": "independent", "unit": "m", "range": [0.3, 1.0], "label": "Effective length" },
+    "t20": { "role": "measured", "unit": "s", "label": "Time for 20 oscillations" },
+    "theta0": { "role": "controlled", "unit": "deg", "default": 8, "range": [2, 25], "label": "Release angle" },
+    "m": { "role": "random", "unit": "kg", "range": [0.04, 0.06], "label": "Bob mass" }
+  },
+  "hidden": { "g": { "range": [9.78, 9.83], "unit": "m/s^2" } },
+  "instruments": {
+    "stopwatch": { "kind": "timer", "resolution": 0.01, "reactionSigma": 0.09 },
+    "metreRule": { "kind": "scale", "resolution": 0.001, "parallaxBound": 0.004 }
+  },
+  "model": "builtin:pendulum@1",
+  "analysis": { "plot": ["L", "T^2"], "derive": "g = 4*pi^2 / slope", "tolerance": 0.03, "minPoints": 6 },
+  "rubric": {
+    "criteria": [
+      { "key": "readings", "label": "Readings & repeats", "max": 6, "rule": "readings" },
+      { "key": "table", "label": "Table & significant figures", "max": 3, "rule": "table" },
+      { "key": "graph", "label": "Graph (axes, scale, points, line)", "max": 5, "rule": "graph" },
+      { "key": "derived", "label": "Slope & value of g", "max": 4, "rule": "derived" },
+      { "key": "precautions", "label": "Precautions", "max": 2, "rule": "precautions" }
+    ]
+  },
+  "procedure": [
+    "Clamp the string in the split cork and set the effective length to 40.0 cm, measured to the centre of the bob.",
+    "Displace the bob through a small angle (under 10°) and release it without pushing.",
+    "Time 20 complete oscillations. Repeat once and take the average.",
+    "Calculate T = t/20 and T².",
+    "Repeat for L = 50, 60, 70, 80 and 90 cm.",
+    "Plot T² against L, draw the line of best fit and find its slope."
+  ],
+  "precautions": [
+    { "text": "Avoided parallax error when reading the metre rule.", "keywords": ["parallax", "eye level", "eye perpendicular"] },
+    { "text": "Kept the angle of swing small.", "keywords": ["small angle", "angle", "small amplitude", "less than 10"] },
+    { "text": "Started timing from the centre (equilibrium position) of the swing.", "keywords": ["centre", "center", "equilibrium", "mean position"] },
+    { "text": "Ensured the string was firmly clamped and did not slip.", "keywords": ["firm", "clamped", "slip", "tight"] }
+  ],
+  "glossary": {
+    "oscillation": "One complete swing from one side to the other and back.",
+    "period": "Time for one complete oscillation, T.",
+    "effective length": "Distance from the point of suspension to the centre of the bob."
+  },
+  "tours": {
+    "D1": [
+      { "regionId": "header", "say": "This bar shows your experiment, your attempts left, and the switcher between labs." },
+      { "regionId": "tray", "say": "Your apparatus lives here. Each item is placed on the bench during setup." },
+      { "regionId": "bench", "say": "This is your bench. The orange ball is the bob; the scale on the right is the metre rule." },
+      { "regionId": "dock", "say": "Set the length and angle here, release the bob, then start and stop the stopwatch yourself." },
+      { "regionId": "log", "say": "Every action and warning is written here." },
+      { "regionId": "data", "say": "Your readings appear in this table with a live preview graph." }
+    ]
+  },
+  "sources": ["WAEC Physics practical syllabus — simple pendulum (verify before demo)"]
+}

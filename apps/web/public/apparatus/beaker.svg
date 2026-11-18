@@ -1,0 +1,21 @@
+<svg viewBox="0 0 360 300" role="img" aria-label="Isometric drawing of a Beaker" xmlns="http://www.w3.org/2000/svg" width="720" height="600">
+<g transform=""><path d="M131.0,220.0 L131.0,124.0 L229.0,124.0 L229.0,220.0 A49.0 28.3 0 0 1 131.0,220.0 Z" fill="rgba(186, 214, 250, 0.22)" stroke="#5B8DD6" stroke-width="0.8" stroke-linejoin="round"></path><path d="M133.5,220.0 L133.5,172.0 L226.5,172.0 L226.5,220.0 A46.5 26.9 0 0 1 133.5,220.0 Z" fill="rgba(96, 165, 250, 0.45)" stroke="none" stroke-width="0.8" stroke-linejoin="round"></path><path d="M133.5,172.0 A46.5 26.9 0 1 0 226.5,172.0 A46.5 26.9 0 1 0 133.5,172.0 Z" fill="rgba(147,197,253,0.65)" stroke="none" stroke-width="0.8" stroke-linejoin="round"></path><path d="M129.1,124.0 L129.1,121.2 L230.9,121.2 L230.9,124.0 A50.9 29.4 0 0 1 129.1,124.0 Z" fill="rgba(186, 214, 250, 0.22)" stroke="#5B8DD6" stroke-width="0.8" stroke-linejoin="round"></path><path d="M129.1,121.2 A50.9 29.4 0 1 0 230.9,121.2 A50.9 29.4 0 1 0 129.1,121.2 Z" fill="rgba(255,255,255,0.5)" stroke="#5B8DD6" stroke-width="0.8" stroke-linejoin="round"></path><path d="M136.4,209.2 L157.1,221.2" fill="none" stroke="#1E3A8A" stroke-width="0.8" stroke-linejoin="round"></path><path d="M136.4,191.2 L157.1,203.2" fill="none" stroke="#1E3A8A" stroke-width="0.8" stroke-linejoin="round"></path><path d="M136.4,173.2 L157.1,185.2" fill="none" stroke="#1E3A8A" stroke-width="0.8" stroke-linejoin="round"></path><path d="M136.4,155.2 L157.1,167.2" fill="none" stroke="#1E3A8A" stroke-width="0.8" stroke-linejoin="round"></path><path d="M174.0,95.2 L179.0,87.2 L186.0,95.2 Z" fill="rgba(186, 214, 250, 0.22)" stroke="#5B8DD6" stroke-width="0.8" stroke-linejoin="round"></path></g>
+
+
+<line x1="180.0" y1="92.0" x2="150.0" y2="78.0" stroke="#2448D8" stroke-width="0.8"></line>
+<circle cx="180.0" cy="92.0" r="2" fill="#2448D8"></circle>
+<rect x="91.6" y="71.0" width="58.4" height="14" rx="3" fill="#FFFFFF" stroke="#2448D8" stroke-width="0.8"></rect>
+<text x="96.6" y="81.0" fill="#1A36A8" font-size="8" font-family="Inter" font-weight="600">Pouring lip</text>
+
+<line x1="146.7" y1="179.2" x2="192.7" y2="183.2" stroke="#2448D8" stroke-width="0.8"></line>
+<circle cx="146.7" cy="179.2" r="2" fill="#2448D8"></circle>
+<rect x="192.7" y="176.2" width="133.2" height="14" rx="3" fill="#FFFFFF" stroke="#2448D8" stroke-width="0.8"></rect>
+<text x="197.7" y="186.2" fill="#1A36A8" font-size="8" font-family="Inter" font-weight="600">Approximate marks only (±5%)</text>
+
+<line x1="180.0" y1="172.0" x2="126.0" y2="202.0" stroke="#2448D8" stroke-width="0.8"></line>
+<circle cx="180.0" cy="172.0" r="2" fill="#2448D8"></circle>
+<rect x="63.2" y="195.0" width="62.8" height="14" rx="3" fill="#FFFFFF" stroke="#2448D8" stroke-width="0.8"></rect>
+<text x="68.2" y="205.0" fill="#1A36A8" font-size="8" font-family="Inter" font-weight="600">Liquid level</text>
+
+
+</svg>

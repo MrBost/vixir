@@ -1,0 +1,27 @@
+# Do NOT ignore .kiro — Kiroween requires it in the repo.
+node_modules/
+dist/
+build/
+coverage/
+.turbo/
+*.log
+.env
+.env.*
+!.env.example
+# Java
+apps/api/.gradle/
+apps/api/build/
+apps/api/out/
+*.class
+.idea/
+*.iml
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.hypothesis/
+# OS
+.DS_Store
+Thumbs.db

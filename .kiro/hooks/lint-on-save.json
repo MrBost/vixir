@@ -1,0 +1,13 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Run lint on save",
+      "trigger": "PostFileSave",
+      "action": {
+        "type": "command",
+        "command": "cd /home/imfolajimi/Desktop/projects/sandbox/vixir && pnpm lint"
+      }
+    }
+  ]
+}
