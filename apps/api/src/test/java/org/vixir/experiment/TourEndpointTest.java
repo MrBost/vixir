@@ -25,8 +25,8 @@ class TourEndpointTest extends BaseIntegrationTest {
 
         var steps = (List<Map<String, Object>>) body.get("steps");
         assertThat(steps).hasSize(6);
-        assertThat(steps.get(0)).containsEntry("regionId", "header");
-        assertThat((String) steps.get(0).get("say")).startsWith("This bar shows your experiment");
+        assertThat(steps.get(0)).containsEntry("regionId", "header").doesNotContainKey("say");
+        assertThat((String) steps.get(0).get("caption")).startsWith("This bar shows your experiment");
     }
 
     @Test
@@ -49,10 +49,10 @@ class TourEndpointTest extends BaseIntegrationTest {
     @Test
     void stepsForSkipsMalformedStepsAndMissingTours() {
         Map<String, Object> config = Map.of("tours", Map.of("D2", List.of(
-                Map.of("regionId", "bench", "say", "The bench."),
-                Map.of("regionId", "no-say"),
+                Map.of("regionId", "bench", "caption", "The bench."),
+                Map.of("regionId", "no-caption"),
                 "not a step",
-                Map.of("regionId", "dock", "say", "The dock."))));
+                Map.of("regionId", "dock", "caption", "The dock."))));
 
         assertThat(TourService.stepsFor(config, "D2")).containsExactly(
                 new TourService.TourStep("bench", "The bench."),

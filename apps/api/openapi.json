@@ -2203,7 +2203,7 @@
                     "regionId": {
                         "type": "string"
                     },
-                    "say": {
+                    "caption": {
                         "type": "string"
                     }
                 }

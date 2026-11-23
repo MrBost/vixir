@@ -11,12 +11,13 @@ import org.vixir.common.ApiException;
 /**
  * Scripted Vix tours per screen code, read from the {@code tours} section of published experiment configs
  * (Req 13.7). The browser plays them with speech synthesis when the agent is unreachable.
- * Config shape: {@code "tours": { "D1": [ { "regionId": "...", "say": "..." } ] }}.
+ * Config shape: {@code "tours": { "D1": [ { "regionId": "...", "caption": "..." } ] }}, the same step
+ * shape as the startTour RPC in contracts.md.
  */
 @Service
 public class TourService {
 
-    public record TourStep(String regionId, String say) {}
+    public record TourStep(String regionId, String caption) {}
 
     public record Tour(String screenCode, String experimentId, int experimentVersion, List<TourStep> steps) {}
 
@@ -59,8 +60,8 @@ public class TourService {
         for (Object raw : rawSteps) {
             if (raw instanceof Map<?, ?> step
                     && step.get("regionId") instanceof String regionId
-                    && step.get("say") instanceof String say) {
-                steps.add(new TourStep(regionId, say));
+                    && step.get("caption") instanceof String caption) {
+                steps.add(new TourStep(regionId, caption));
             }
         }
         return steps;
