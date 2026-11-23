@@ -158,6 +158,46 @@ class AnalyticsQueryTest extends BaseIntegrationTest {
         assertThat(after).isEqualTo(before);
     }
 
+    @Test
+    void resultsPickEachStudentsBestThenLatestAttempt() {
+        var a = assignment(assignmentA.getClassId());
+        UUID markedThenRetrying = registerUserId("STUDENT");
+        attemptFor(a, markedThenRetrying, 1, "MARKED", criteria("score", 8, 20, "r"));
+        attemptFor(a, markedThenRetrying, 2, "IN_PROGRESS", null);
+
+        UUID twoMarked = registerUserId("STUDENT"); // used to crash: two MARKED attempts for one student
+        attemptFor(a, twoMarked, 1, "MARKED", criteria("score", 5, 20, "r"));
+        attemptFor(a, twoMarked, 2, "MARKED", criteria("score", 7, 20, "r"));
+
+        UUID waiting = registerUserId("STUDENT");
+        attemptFor(a, waiting, 1, "SUBMITTED", null);
+
+        UUID gaveUp = registerUserId("STUDENT");
+        attemptFor(a, gaveUp, 1, "ABANDONED", null);
+
+        var results = analytics.resultsForAssignment(a);
+        var byUser = new java.util.HashMap<UUID, AnalyticsService.StudentStatus>();
+        results.perStudent().forEach(st -> byUser.put(st.userId(), st));
+
+        assertThat(byUser).containsOnlyKeys(markedThenRetrying, twoMarked, waiting);
+        assertThat(byUser.get(markedThenRetrying)).isEqualTo(new AnalyticsService.StudentStatus(markedThenRetrying, "MARKED", 8));
+        assertThat(byUser.get(twoMarked)).isEqualTo(new AnalyticsService.StudentStatus(twoMarked, "MARKED", 7));
+        assertThat(byUser.get(waiting)).isEqualTo(new AnalyticsService.StudentStatus(waiting, "SUBMITTED", null));
+        assertThat(results.submittedCount()).isEqualTo(2);
+        // Stable order: by user id
+        assertThat(results.perStudent()).extracting(AnalyticsService.StudentStatus::userId).isSorted();
+    }
+
+    @Test
+    void resultsQueryCountDoesNotGrowWithClassSize() {
+        long before = queriesFor(() -> analytics.resultsForAssignment(assignmentA));
+        for (int i = 0; i < 10; i++) {
+            submit(assignmentA, criteria("sig_figs", 3, 5, "r", "graph", 2, 4, "r"));
+        }
+        long after = queriesFor(() -> analytics.resultsForAssignment(assignmentA));
+        assertThat(after).isEqualTo(before);
+    }
+
     // ---- helpers ----
 
     private long queriesFor(Runnable action) {
@@ -196,15 +236,23 @@ class AnalyticsQueryTest extends BaseIntegrationTest {
 
     /** One student's submission for the assignment, marked with the given criteria (null = not marked yet). */
     private UUID submit(Assignment assignment, Map<String, Object[]> criteria) {
+        return attemptFor(assignment, registerUserId("STUDENT"), 1, criteria == null ? "SUBMITTED" : "MARKED", criteria);
+    }
+
+    /** An attempt in the given state; a submission unless IN_PROGRESS/ABANDONED, marked when criteria is set. */
+    private UUID attemptFor(Assignment assignment, UUID userId, int attemptNo, String state,
+                            Map<String, Object[]> criteria) {
         var attempt = new Attempt();
-        attempt.setUserId(registerUserId("STUDENT"));
+        attempt.setUserId(userId);
         attempt.setAssignmentId(assignment.getId());
         attempt.setExperimentId("phy.pendulum.g");
         attempt.setExperimentVersion(1);
         attempt.setMode("GRADED");
         attempt.setSeed(new byte[16]);
-        attempt.setState(criteria == null ? "SUBMITTED" : "MARKED");
+        attempt.setAttemptNo(attemptNo);
+        attempt.setState(state);
         attemptRepo.save(attempt);
+        if ("IN_PROGRESS".equals(state) || "ABANDONED".equals(state)) return null;
 
         var submission = new Submission();
         submission.setAttemptId(attempt.getId());

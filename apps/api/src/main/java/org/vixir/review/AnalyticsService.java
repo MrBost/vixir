@@ -4,6 +4,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.vixir.assignment.Assignment;
+import org.vixir.attempt.Attempt;
 import org.vixir.attempt.AttemptRepository;
 import org.vixir.marking.Mark;
 import org.vixir.marking.MarkCriterion;
@@ -59,26 +60,24 @@ public class AnalyticsService {
         UUID assignmentId = assignment.getId();
         long enrolled = enrolmentRepo.countStudents(assignment.getClassId());
 
-        List<UUID> attemptUserIds = attemptRepo.findByAssignmentId(assignmentId).stream()
-                .map(a -> a.getUserId()).filter(Objects::nonNull).distinct().toList();
+        // Two queries for any class size: the assignment's attempts, and the mark total per attempt.
+        Map<UUID, Integer> totalByAttempt = new HashMap<>();
+        markRepo.findAttemptTotalsByAssignmentId(assignmentId)
+                .forEach(t -> totalByAttempt.put(t.getAttemptId(), t.getTotal()));
+
+        // Each student's representative attempt: best state first, then the latest attempt.
+        Map<UUID, Attempt> chosen = new TreeMap<>();
+        for (Attempt a : attemptRepo.findByAssignmentId(assignmentId)) {
+            if (a.getUserId() == null || statePriority(a.getState()) < 0) continue;
+            chosen.merge(a.getUserId(), a, (x, y) -> better(x, y) ? x : y);
+        }
 
         List<StudentStatus> statuses = new ArrayList<>();
         List<Integer> scores = new ArrayList<>();
-
-        for (UUID uid : attemptUserIds) {
-            var attempt = attemptRepo.findByAssignmentIdAndUserIdAndState(assignmentId, uid, "RELEASED")
-                    .or(() -> attemptRepo.findByAssignmentIdAndUserIdAndState(assignmentId, uid, "MARKED"))
-                    .or(() -> attemptRepo.findByAssignmentIdAndUserIdAndState(assignmentId, uid, "SUBMITTED"))
-                    .or(() -> attemptRepo.findByAssignmentIdAndUserIdAndState(assignmentId, uid, "IN_PROGRESS"))
-                    .orElse(null);
-            if (attempt == null) continue;
-
-            Integer total = submissionRepo.findByAttemptId(attempt.getId())
-                    .flatMap(s -> markRepo.findBySubmissionId(s.getId()))
-                    .map(Mark::getTotal).orElse(null);
-
+        for (var e : chosen.entrySet()) {
+            Integer total = totalByAttempt.get(e.getValue().getId());
             if (total != null) scores.add(total);
-            statuses.add(new StudentStatus(uid, attempt.getState(), total));
+            statuses.add(new StudentStatus(e.getKey(), e.getValue().getState(), total));
         }
 
         int[] histogram = buildHistogram(scores);
@@ -86,6 +85,22 @@ public class AnalyticsService {
         long openFlags = flagRepo.findOpenFlagsForAssignment(assignmentId).size();
 
         return new AssignmentResults(enrolled, scores.size(), statuses, histogram, criterionAvgs, openFlags);
+    }
+
+    /** RELEASED > MARKED > SUBMITTED > IN_PROGRESS; -1 for states that don't count (ABANDONED). */
+    private static int statePriority(String state) {
+        return switch (state) {
+            case "RELEASED" -> 3;
+            case "MARKED" -> 2;
+            case "SUBMITTED" -> 1;
+            case "IN_PROGRESS" -> 0;
+            default -> -1;
+        };
+    }
+
+    private static boolean better(Attempt x, Attempt y) {
+        int px = statePriority(x.getState()), py = statePriority(y.getState());
+        return px != py ? px > py : x.getAttemptNo() >= y.getAttemptNo();
     }
 
     public record CommonMistake(String criterionKey, String reason, double share) {}
