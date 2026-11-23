@@ -41,11 +41,12 @@ public class EventController {
     /** Fetch events for resume / bench replay (Req 8.6). */
     @Operation(summary = "Get attempt events", description = "For resume and bench replay. Pass afterSeq to fetch only newer events. Own attempts only.")
     @GetMapping
-    List<AttemptEvent> get(
+    List<AttemptEventResponse> get(
             @PathVariable UUID attemptId,
             @AuthenticationPrincipal Jwt jwt,
             @RequestParam(required = false) Integer afterSeq) {
         UUID userId = UUID.fromString(jwt.getSubject());
-        return ingestService.getEvents(attemptId, userId, afterSeq);
+        return ingestService.getEvents(attemptId, userId, afterSeq).stream()
+                .map(AttemptEventResponse::from).toList();
     }
 }

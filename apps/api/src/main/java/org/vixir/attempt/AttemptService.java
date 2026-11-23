@@ -162,7 +162,8 @@ public class AttemptService {
 
         AttemptBootstrap.ResumeInfo resume = null;
         if (!events.isEmpty()) {
-            resume = new AttemptBootstrap.ResumeInfo(attempt.getLastEventSeq(), events);
+            resume = new AttemptBootstrap.ResumeInfo(attempt.getLastEventSeq(),
+                    events.stream().map(org.vixir.attempt.event.AttemptEventResponse::from).toList());
         }
 
         return new AttemptBootstrap(

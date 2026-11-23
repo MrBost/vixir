@@ -75,9 +75,9 @@ public class AttemptController {
 
     @Operation(summary = "Get an attempt", description = "Own attempts only.")
     @GetMapping("/{id}")
-    ResponseEntity<Attempt> get(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
+    ResponseEntity<AttemptResponse> get(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
         UUID userId = jwt != null ? UUID.fromString(jwt.getSubject()) : null;
-        return ResponseEntity.ok(attemptService.getForUser(id, userId));
+        return ResponseEntity.ok(AttemptResponse.from(attemptService.getForUser(id, userId)));
     }
 
     // ---- helpers ----

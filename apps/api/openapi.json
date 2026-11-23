@@ -644,7 +644,7 @@
                                 "schema": {
                                     "type": "array",
                                     "items": {
-                                        "$ref": "#/components/schemas/AttemptEvent"
+                                        "$ref": "#/components/schemas/AttemptEventResponse"
                                     }
                                 }
                             }
@@ -943,7 +943,7 @@
                         "content": {
                             "*/*": {
                                 "schema": {
-                                    "type": "object"
+                                    "$ref": "#/components/schemas/MarkReportResponse"
                                 }
                             }
                         }
@@ -1042,7 +1042,7 @@
                         "content": {
                             "*/*": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ReviewFlag"
+                                    "$ref": "#/components/schemas/FlagResponse"
                                 }
                             }
                         }
@@ -1359,7 +1359,7 @@
                         "content": {
                             "*/*": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Attempt"
+                                    "$ref": "#/components/schemas/AttemptResponse"
                                 }
                             }
                         }
@@ -1392,7 +1392,7 @@
                         "content": {
                             "*/*": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ReportResponse"
+                                    "$ref": "#/components/schemas/MarkReportResponse"
                                 }
                             }
                         }
@@ -1493,7 +1493,7 @@
                                 "schema": {
                                     "type": "array",
                                     "items": {
-                                        "$ref": "#/components/schemas/ReviewFlag"
+                                        "$ref": "#/components/schemas/FlagResponse"
                                     }
                                 }
                             }
@@ -1778,17 +1778,9 @@
                     }
                 }
             },
-            "AttemptEvent": {
+            "AttemptEventResponse": {
                 "type": "object",
                 "properties": {
-                    "id": {
-                        "type": "integer",
-                        "format": "int64"
-                    },
-                    "attemptId": {
-                        "type": "string",
-                        "format": "uuid"
-                    },
                     "clientEventId": {
                         "type": "string",
                         "format": "uuid"
@@ -1799,10 +1791,6 @@
                     },
                     "type": {
                         "type": "string"
-                    },
-                    "payload": {
-                        "type": "object",
-                        "additionalProperties": {}
                     },
                     "simTimeMs": {
                         "type": "integer",
@@ -1815,6 +1803,10 @@
                     "serverTs": {
                         "type": "string",
                         "format": "date-time"
+                    },
+                    "payload": {
+                        "type": "object",
+                        "additionalProperties": {}
                     }
                 }
             },
@@ -1841,7 +1833,7 @@
                     "events": {
                         "type": "array",
                         "items": {
-                            "$ref": "#/components/schemas/AttemptEvent"
+                            "$ref": "#/components/schemas/AttemptEventResponse"
                         }
                     }
                 }
@@ -2034,6 +2026,76 @@
                     }
                 }
             },
+            "CriterionView": {
+                "type": "object",
+                "properties": {
+                    "criterionKey": {
+                        "type": "string"
+                    },
+                    "awarded": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "max": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "reason": {
+                        "type": "string"
+                    },
+                    "overridden": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "MarkReportResponse": {
+                "type": "object",
+                "properties": {
+                    "mark": {
+                        "$ref": "#/components/schemas/MarkView"
+                    },
+                    "criteria": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/CriterionView"
+                        }
+                    }
+                }
+            },
+            "MarkView": {
+                "type": "object",
+                "properties": {
+                    "submissionId": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "total": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "maxTotal": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "markerVersion": {
+                        "type": "string"
+                    },
+                    "teacherComment": {
+                        "type": "string"
+                    },
+                    "reviewed": {
+                        "type": "boolean"
+                    },
+                    "markedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "releasedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                }
+            },
             "PatchMeRequest": {
                 "type": "object",
                 "properties": {
@@ -2083,7 +2145,7 @@
                     }
                 }
             },
-            "ReviewFlag": {
+            "FlagResponse": {
                 "type": "object",
                 "properties": {
                     "id": {
@@ -2201,14 +2263,10 @@
                     }
                 }
             },
-            "Attempt": {
+            "AttemptResponse": {
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "string",
-                        "format": "uuid"
-                    },
-                    "userId": {
                         "type": "string",
                         "format": "uuid"
                     },
@@ -2230,23 +2288,12 @@
                         "type": "integer",
                         "format": "int32"
                     },
-                    "seed": {
-                        "type": "string",
-                        "format": "byte"
-                    },
                     "state": {
                         "type": "string"
                     },
                     "lastEventSeq": {
                         "type": "integer",
                         "format": "int32"
-                    },
-                    "deviceId": {
-                        "type": "string",
-                        "format": "uuid"
-                    },
-                    "anonTokenHash": {
-                        "type": "string"
                     },
                     "startedAt": {
                         "type": "string",
@@ -2255,104 +2302,6 @@
                     "submittedAt": {
                         "type": "string",
                         "format": "date-time"
-                    },
-                    "clientSubmittedAt": {
-                        "type": "string",
-                        "format": "date-time"
-                    }
-                }
-            },
-            "Mark": {
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "type": "string",
-                        "format": "uuid"
-                    },
-                    "submissionId": {
-                        "type": "string",
-                        "format": "uuid"
-                    },
-                    "total": {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "maxTotal": {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "markerVersion": {
-                        "type": "string"
-                    },
-                    "teacherComment": {
-                        "type": "string"
-                    },
-                    "reviewedBy": {
-                        "type": "string",
-                        "format": "uuid"
-                    },
-                    "markedAt": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "releasedAt": {
-                        "type": "string",
-                        "format": "date-time"
-                    }
-                }
-            },
-            "MarkCriterion": {
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "$ref": "#/components/schemas/MarkCriterionId"
-                    },
-                    "awarded": {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "max": {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "reason": {
-                        "type": "string"
-                    },
-                    "overridden": {
-                        "type": "boolean"
-                    },
-                    "markId": {
-                        "type": "string",
-                        "format": "uuid"
-                    },
-                    "criterionKey": {
-                        "type": "string"
-                    }
-                }
-            },
-            "MarkCriterionId": {
-                "type": "object",
-                "properties": {
-                    "markId": {
-                        "type": "string",
-                        "format": "uuid"
-                    },
-                    "criterionKey": {
-                        "type": "string"
-                    }
-                }
-            },
-            "ReportResponse": {
-                "type": "object",
-                "properties": {
-                    "mark": {
-                        "$ref": "#/components/schemas/Mark"
-                    },
-                    "criteria": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/components/schemas/MarkCriterion"
-                        }
                     }
                 }
             },

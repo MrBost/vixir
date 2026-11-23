@@ -14,5 +14,5 @@ public record AttemptBootstrap(
         ResumeInfo resume         // null for new attempts
 ) {
     public record ExperimentRef(String id, int version, Object config) {}
-    public record ResumeInfo(int lastEventSeq, List<AttemptEvent> events) {}
+    public record ResumeInfo(int lastEventSeq, List<org.vixir.attempt.event.AttemptEventResponse> events) {}
 }

@@ -41,7 +41,7 @@ public class ReviewController {
 
     @Operation(summary = "Get my marked report", description = "Student, own attempt only, and only after the teacher has released marks (404 before that).")
     @GetMapping("/attempts/{id}/report")
-    ReleaseService.ReportResponse report(@PathVariable UUID id,
+    MarkReportResponse report(@PathVariable UUID id,
                                           @AuthenticationPrincipal Jwt jwt) {
         return releaseService.getReport(id, uid(jwt));
     }
@@ -76,7 +76,7 @@ public class ReviewController {
             @ExampleObject(name = "override", value = "{\"criterionKey\": \"sig_figs\", \"score\": 2, \"reason\": \"Accepted 3 s.f.\"}"),
             @ExampleObject(name = "comment", value = "{\"comment\": \"Good graph, check your units.\"}")}))
     @PatchMapping("/submissions/{id}/mark")
-    ResponseEntity<Object> patchMark(@PathVariable UUID id,
+    ResponseEntity<MarkReportResponse> patchMark(@PathVariable UUID id,
                                       @AuthenticationPrincipal Jwt jwt,
                                       @RequestBody Map<String, Object> body) {
         UUID teacherId = uid(jwt);
@@ -89,14 +89,14 @@ public class ReviewController {
             }
             String reason = body.get("reason") instanceof String r ? r : "";
             var mark = releaseService.overrideCriterion(id, key, n.intValue(), reason, teacherId);
-            return ResponseEntity.ok(mark);
+            return ResponseEntity.ok(releaseService.reportFor(mark));
         }
         if (body.containsKey("comment")) {
             if (!(body.get("comment") instanceof String comment)) {
                 throw ApiException.unprocessable("INVALID_COMMENT", "comment must be a string");
             }
             var mark = releaseService.addComment(id, comment, teacherId);
-            return ResponseEntity.ok(mark);
+            return ResponseEntity.ok(releaseService.reportFor(mark));
         }
         throw ApiException.unprocessable("MISSING_FIELDS", "Send criterionKey and score, or comment");
     }
@@ -116,18 +116,18 @@ public class ReviewController {
 
     @Operation(summary = "List open review flags", description = "Teacher (owner or co-teacher). Flags such as duplicate readings or statistical outliers.")
     @GetMapping("/assignments/{id}/flags")
-    List<ReviewFlag> flags(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
+    List<FlagResponse> flags(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
         assignmentService.get(id, uid(jwt)); // ownership
-        return flagService.flagRepo().findOpenFlagsForAssignment(id);
+        return flagService.flagRepo().findOpenFlagsForAssignment(id).stream().map(FlagResponse::from).toList();
     }
 
     @Operation(summary = "Resolve a review flag")
     @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{\"note\": \"Checked with the student, readings are genuine.\"}")))
     @PatchMapping("/flags/{id}")
-    ReviewFlag resolveFlag(@PathVariable UUID id,
+    FlagResponse resolveFlag(@PathVariable UUID id,
                             @AuthenticationPrincipal Jwt jwt,
                             @RequestBody Map<String, String> body) {
-        return flagService.resolve(id, uid(jwt), body.get("note"));
+        return FlagResponse.from(flagService.resolve(id, uid(jwt), body.get("note")));
     }
 
     private UUID uid(Jwt jwt) { return UUID.fromString(jwt.getSubject()); }

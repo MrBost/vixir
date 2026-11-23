@@ -121,7 +121,7 @@ public class ReleaseService {
     }
 
     /** Student reads their own report only when attempt is RELEASED (Req 12.6). */
-    public ReportResponse getReport(UUID attemptId, UUID requesterId) {
+    public MarkReportResponse getReport(UUID attemptId, UUID requesterId) {
         var attempt = attemptRepo.findById(attemptId)
                 .orElseThrow(() -> ApiException.notFound("ATTEMPT_NOT_FOUND", "Attempt not found"));
 
@@ -136,10 +136,12 @@ public class ReleaseService {
                 .orElseThrow(() -> ApiException.notFound("SUBMISSION_NOT_FOUND", "Submission not found"));
         var mark = markRepo.findBySubmissionId(submission.getId())
                 .orElseThrow(() -> ApiException.notFound("MARK_NOT_FOUND", "Mark not found"));
-        var criteria = criterionRepo.findByMarkId(mark.getId());
-
-        return new ReportResponse(mark, criteria);
+        return reportFor(mark);
     }
 
-    public record ReportResponse(Mark mark, List<MarkCriterion> criteria) {}
+    /** A mark with its criteria, as returned to clients. */
+    public MarkReportResponse reportFor(Mark mark) {
+        return MarkReportResponse.from(mark, criterionRepo.findByMarkId(mark.getId()));
+    }
+
 }
