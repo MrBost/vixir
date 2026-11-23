@@ -15,9 +15,6 @@ import org.vixir.common.BaseIntegrationTest;
  */
 class AuthorizationRulesTest extends BaseIntegrationTest {
 
-    @org.springframework.beans.factory.annotation.Autowired org.vixir.school.InstitutionRepository institutionRepo;
-    @org.springframework.beans.factory.annotation.Autowired org.vixir.school.SchoolClassRepository classRepo;
-
     // Req 2.1 — /api/v1/** needs JWT, /auth/* does not
     @Test
     void unauthenticatedRequestToProtectedEndpointReturns401() {
@@ -96,22 +93,12 @@ class AuthorizationRulesTest extends BaseIntegrationTest {
     @Test
     void teacherCannotCreateAssignmentWithDueBeforeOpen() {
         String token = register("teacher-dc@example.com", "password123", "TEACHER", "T");
-        // A class the teacher owns, so the request gets past the ownership check to date validation.
-        // Created through repositories: POST /classes currently fails for teachers without an institution.
-        var inst = new org.vixir.school.Institution();
-        inst.setName("Dates School");
-        inst.setType("SECONDARY");
-        institutionRepo.save(inst);
-        var cls = new org.vixir.school.SchoolClass();
-        cls.setInstitutionId(inst.getId());
-        cls.setOwnerId(subjectOf(token));
-        cls.setName("Dates");
-        cls.setSubject("PHYSICS");
-        cls.setLevel("SS2");
-        cls.setJoinCode("PHY-SS2-DATE");
-        classRepo.save(cls);
+        // A class the teacher owns, so the request gets past the ownership check to date validation
+        var cls = http.exchange("/api/v1/classes", HttpMethod.POST,
+                bearerRequest(token, Map.of("name", "Dates", "subject", "PHYSICS", "level", "SS2")), Map.class);
+        assertThat(cls.getStatusCode().value()).isEqualTo(201);
         var body = Map.of(
-                "classId", cls.getId().toString(),
+                "classId", cls.getBody().get("id").toString(),
                 "experimentId", "phy.pendulum.g",
                 "experimentVersion", 1,
                 "mode", "GRADED",

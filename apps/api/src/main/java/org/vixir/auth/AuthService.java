@@ -23,6 +23,7 @@ import org.vixir.common.AppClock;
 import org.vixir.school.SchoolClassRepository;
 import org.vixir.school.EnrolmentRepository;
 import org.vixir.school.Enrolment;
+import org.vixir.school.InstitutionService;
 
 /**
  * Registration, login, Google sign-in, refresh rotation (Req 1).
@@ -39,6 +40,7 @@ public class AuthService {
     private final AppClock clock;
     private final SchoolClassRepository classRepo;
     private final EnrolmentRepository enrolmentRepo;
+    private final InstitutionService institutionService;
 
     @Value("${GOOGLE_CLIENT_ID:}")
     private String googleClientId;
@@ -49,7 +51,9 @@ public class AuthService {
                        TokenService tokens,
                        AppClock clock,
                        SchoolClassRepository classRepo,
-                       EnrolmentRepository enrolmentRepo) {
+                       EnrolmentRepository enrolmentRepo,
+                       InstitutionService institutionService) {
+        this.institutionService = institutionService;
         this.userRepo = userRepo;
         this.refreshRepo = refreshRepo;
         this.passwords = passwords;
@@ -82,6 +86,12 @@ public class AuthService {
         user.setLastName(req.lastName());
         user.setRole(req.role());
         userRepo.save(user);
+
+        // Req 3.1 — an admin's registration creates their institution. A self-registered teacher gets a
+        // personal one too, otherwise they could not create classes (school_class.institution_id is NOT NULL).
+        if (req.role() == AppUser.Role.ADMIN || req.role() == AppUser.Role.TEACHER) {
+            institutionService.createFor(user, req.institutionName());
+        }
 
         // Req 1.2 — enrol student in class within same transaction
         if (req.role() == AppUser.Role.STUDENT && req.classCode() != null) {

@@ -14,12 +14,15 @@ public class ClassService {
     private final SchoolClassRepository classRepo;
     private final EnrolmentRepository enrolmentRepo;
     private final AppUserRepository userRepo;
+    private final InstitutionService institutionService;
     private final JoinCodeGenerator joinCodeGen;
 
     public ClassService(SchoolClassRepository classRepo,
                         EnrolmentRepository enrolmentRepo,
                         AppUserRepository userRepo,
-                        JoinCodeGenerator joinCodeGen) {
+                        JoinCodeGenerator joinCodeGen,
+                        InstitutionService institutionService) {
+        this.institutionService = institutionService;
         this.classRepo = classRepo;
         this.enrolmentRepo = enrolmentRepo;
         this.userRepo = userRepo;
@@ -32,6 +35,10 @@ public class ClassService {
                 .orElseThrow(() -> ApiException.notFound("USER_NOT_FOUND", "User not found"));
         if (teacher.getRole() != AppUser.Role.TEACHER && teacher.getRole() != AppUser.Role.ADMIN) {
             throw ApiException.forbidden("TEACHER_ROLE_REQUIRED", "Only teachers and admins can create classes");
+        }
+        // Teachers who registered before institutions were created at sign-up have none yet.
+        if (teacher.getInstitutionId() == null) {
+            institutionService.createFor(teacher, null);
         }
 
         String code = generateUniqueCode(req.subject(), req.level());

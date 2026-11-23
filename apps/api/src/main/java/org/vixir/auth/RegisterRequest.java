@@ -11,5 +11,7 @@ public record RegisterRequest(
         @NotBlank String firstName,
         @NotBlank String lastName,
         @NotNull AppUser.Role role,
-        String classCode   // optional; required when role == STUDENT and you want to join
+        String classCode,  // optional; required when role == STUDENT and you want to join
+        @Size(max = 120, message = "Institution name must be at most 120 characters")
+        String institutionName  // optional; TEACHER/ADMIN only. Defaults to a name derived from the user.
 ) {}
