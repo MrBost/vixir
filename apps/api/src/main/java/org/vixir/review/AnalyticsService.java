@@ -3,6 +3,7 @@ package org.vixir.review;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
+import org.vixir.assignment.Assignment;
 import org.vixir.attempt.AttemptRepository;
 import org.vixir.marking.Mark;
 import org.vixir.marking.MarkCriterion;
@@ -50,8 +51,13 @@ public class AnalyticsService {
 
     public record StudentStatus(UUID userId, String state, Integer total) {}
 
-    public AssignmentResults resultsForAssignment(UUID assignmentId, UUID classId) {
-        long enrolled = enrolmentRepo.countStudents(classId);
+    /**
+     * Results for one assignment. Takes the Assignment itself (callers already load it for the ownership
+     * check) so the class used for enrolledCount always matches the assignment.
+     */
+    public AssignmentResults resultsForAssignment(Assignment assignment) {
+        UUID assignmentId = assignment.getId();
+        long enrolled = enrolmentRepo.countStudents(assignment.getClassId());
 
         List<UUID> attemptUserIds = attemptRepo.findByAssignmentId(assignmentId).stream()
                 .map(a -> a.getUserId()).filter(Objects::nonNull).distinct().toList();

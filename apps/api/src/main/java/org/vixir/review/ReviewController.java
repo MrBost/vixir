@@ -54,7 +54,7 @@ public class ReviewController {
                                                 @AuthenticationPrincipal Jwt jwt) {
         // Ownership check
         var assignment = assignmentService.get(id, uid(jwt));
-        return analyticsService.resultsForAssignment(id, assignment.getClassId());
+        return analyticsService.resultsForAssignment(assignment);
     }
 
     // ---- Analytics (Req 12.2) ----
@@ -63,8 +63,8 @@ public class ReviewController {
     @GetMapping("/assignments/{id}/analytics")
     Map<String, Object> analytics(@PathVariable UUID id,
                                    @AuthenticationPrincipal Jwt jwt) {
-        assignmentService.get(id, uid(jwt)); // ownership
-        var results = analyticsService.resultsForAssignment(id, null);
+        var assignment = assignmentService.get(id, uid(jwt)); // ownership
+        var results = analyticsService.resultsForAssignment(assignment);
         var mistakes = analyticsService.commonMistakes(id);
         return Map.of("results", results, "commonMistakes", mistakes);
     }
