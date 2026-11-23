@@ -19,4 +19,11 @@ public interface SubmissionRepository extends JpaRepository<Submission, UUID> {
         WHERE a.assignmentId = :assignmentId AND s.readingsHash = :hash
         """)
     List<Submission> findByAssignmentAndHash(UUID assignmentId, String hash);
+
+    @Query("""
+        SELECT COUNT(s) FROM Submission s
+        JOIN org.vixir.attempt.Attempt a ON s.attemptId = a.id
+        WHERE a.assignmentId = :assignmentId
+        """)
+    long countByAssignmentId(UUID assignmentId);
 }

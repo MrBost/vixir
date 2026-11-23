@@ -1,0 +1,206 @@
+package org.vixir.review;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.within;
+
+import jakarta.persistence.EntityManagerFactory;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.UUID;
+import org.hibernate.SessionFactory;
+import org.hibernate.stat.Statistics;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.vixir.assignment.Assignment;
+import org.vixir.assignment.AssignmentRepository;
+import org.vixir.attempt.Attempt;
+import org.vixir.attempt.AttemptRepository;
+import org.vixir.common.BaseIntegrationTest;
+import org.vixir.marking.Mark;
+import org.vixir.marking.MarkCriterion;
+import org.vixir.marking.MarkCriterionRepository;
+import org.vixir.marking.MarkRepository;
+import org.vixir.school.Institution;
+import org.vixir.school.InstitutionRepository;
+import org.vixir.school.SchoolClass;
+import org.vixir.school.SchoolClassRepository;
+import org.vixir.submission.Submission;
+import org.vixir.submission.SubmissionRepository;
+
+/**
+ * Common mistakes and criterion averages read only the assignment's own rows, in a fixed number of queries
+ * no matter how many submissions exist (they used to scan every submission on the platform, then N+1).
+ */
+class AnalyticsQueryTest extends BaseIntegrationTest {
+
+    @Autowired AnalyticsService analytics;
+    @Autowired EntityManagerFactory emf;
+    @Autowired InstitutionRepository institutionRepo;
+    @Autowired SchoolClassRepository classRepo;
+    @Autowired AssignmentRepository assignmentRepo;
+    @Autowired AttemptRepository attemptRepo;
+    @Autowired SubmissionRepository submissionRepo;
+    @Autowired MarkRepository markRepo;
+    @Autowired MarkCriterionRepository criterionRepo;
+
+    UUID teacherId;
+    Assignment assignmentA;
+    Assignment assignmentB;
+
+    @BeforeEach
+    void setUp() {
+        teacherId = registerUserId("TEACHER");
+        var inst = new Institution();
+        inst.setName("Analytics School");
+        inst.setType("SECONDARY");
+        institutionRepo.save(inst);
+        var cls = new SchoolClass();
+        cls.setInstitutionId(inst.getId());
+        cls.setOwnerId(teacherId);
+        cls.setName("Analytics");
+        cls.setSubject("PHYSICS");
+        cls.setLevel("SS2");
+        cls.setJoinCode("PHY-SS2-" + UUID.randomUUID().toString().substring(0, 4).toUpperCase());
+        classRepo.save(cls);
+        assignmentA = assignment(cls.getId());
+        assignmentB = assignment(cls.getId());
+
+        // Assignment A: three marked submissions and one not yet marked (counts in the share denominator)
+        submit(assignmentA, criteria("sig_figs", 3, 5, "too few s.f.", "graph", 3, 4, "no units"));
+        submit(assignmentA, criteria("sig_figs", 2, 5, "too few s.f.", "graph", 2, 4, "no units"));
+        submit(assignmentA, criteria("sig_figs", 5, 5, "ok", "graph", 3, 4, "no title"));
+        submit(assignmentA, null);
+        // Assignment B must not leak into A's numbers
+        submit(assignmentB, criteria("sig_figs", 0, 5, "other assignment", "graph", 0, 4, "other assignment"));
+    }
+
+    @Test
+    void commonMistakesUseOnlyThisAssignment() {
+        var mistakes = analytics.commonMistakes(assignmentA.getId());
+
+        assertThat(mistakes).hasSize(2);
+        // graph lost marks on 3 of 4 submissions, sig_figs on 2 of 4
+        assertThat(mistakes.get(0).criterionKey()).isEqualTo("graph");
+        assertThat(mistakes.get(0).reason()).isEqualTo("no units");
+        assertThat(mistakes.get(0).share()).isCloseTo(0.75, within(1e-9));
+        assertThat(mistakes.get(1).criterionKey()).isEqualTo("sig_figs");
+        assertThat(mistakes.get(1).reason()).isEqualTo("too few s.f.");
+        assertThat(mistakes.get(1).share()).isCloseTo(0.5, within(1e-9));
+    }
+
+    @Test
+    void criterionAveragesUseOnlyThisAssignment() {
+        Map<String, Double> avgs = analytics.criterionAverages(assignmentA.getId());
+        assertThat(avgs.keySet()).containsExactly("graph", "sig_figs");
+        assertThat(avgs.get("graph")).isCloseTo(8.0 / 3, within(1e-9));
+        assertThat(avgs.get("sig_figs")).isCloseTo(10.0 / 3, within(1e-9));
+    }
+
+    @Test
+    void noSubmissionsMeansNoMistakes() {
+        var empty = assignment(assignmentA.getClassId());
+        assertThat(analytics.commonMistakes(empty.getId())).isEmpty();
+        assertThat(analytics.criterionAverages(empty.getId())).isEmpty();
+    }
+
+    @Test
+    void queryCountDoesNotGrowWithSubmissions() {
+        long before = queriesFor(() -> {
+            analytics.commonMistakes(assignmentA.getId());
+            analytics.criterionAverages(assignmentA.getId());
+        });
+
+        // Ten more marked submissions on A, and ten on B (the old code scanned the whole table)
+        for (int i = 0; i < 10; i++) {
+            submit(assignmentA, criteria("sig_figs", 1, 5, "too few s.f.", "graph", 4, 4, "ok"));
+            submit(assignmentB, criteria("sig_figs", 1, 5, "x", "graph", 1, 4, "y"));
+        }
+
+        long after = queriesFor(() -> {
+            analytics.commonMistakes(assignmentA.getId());
+            analytics.criterionAverages(assignmentA.getId());
+        });
+
+        assertThat(after).isEqualTo(before);
+        assertThat(after).isLessThanOrEqualTo(3); // count + criteria (mistakes) + criteria (averages)
+    }
+
+    // ---- helpers ----
+
+    private long queriesFor(Runnable action) {
+        Statistics stats = emf.unwrap(SessionFactory.class).getStatistics();
+        stats.setStatisticsEnabled(true);
+        stats.clear();
+        action.run();
+        long count = stats.getPrepareStatementCount();
+        stats.setStatisticsEnabled(false);
+        return count;
+    }
+
+    private Assignment assignment(UUID classId) {
+        Instant now = Instant.now();
+        var a = new Assignment();
+        a.setClassId(classId);
+        a.setExperimentId("phy.pendulum.g");
+        a.setExperimentVersion(1);
+        a.setCreatedBy(teacherId);
+        a.setMode("GRADED");
+        a.setStatus("PUBLISHED");
+        a.setNoiseLevel("REALISTIC");
+        a.setAttemptsAllowed(2);
+        a.setReleasePolicy("MANUAL");
+        a.setOpensAt(now.minus(1, ChronoUnit.DAYS));
+        a.setDueAt(now.plus(1, ChronoUnit.DAYS));
+        return assignmentRepo.save(a);
+    }
+
+    /** key, awarded, max, reason — repeated. */
+    private static Map<String, Object[]> criteria(Object... v) {
+        Map<String, Object[]> m = new LinkedHashMap<>();
+        for (int i = 0; i < v.length; i += 4) m.put((String) v[i], new Object[]{v[i + 1], v[i + 2], v[i + 3]});
+        return m;
+    }
+
+    /** One student's submission for the assignment, marked with the given criteria (null = not marked yet). */
+    private void submit(Assignment assignment, Map<String, Object[]> criteria) {
+        var attempt = new Attempt();
+        attempt.setUserId(registerUserId("STUDENT"));
+        attempt.setAssignmentId(assignment.getId());
+        attempt.setExperimentId("phy.pendulum.g");
+        attempt.setExperimentVersion(1);
+        attempt.setMode("GRADED");
+        attempt.setSeed(new byte[16]);
+        attempt.setState(criteria == null ? "SUBMITTED" : "MARKED");
+        attemptRepo.save(attempt);
+
+        var submission = new Submission();
+        submission.setAttemptId(attempt.getId());
+        submission.setResults(Map.of());
+        submission.setReadingsHash("hash-" + UUID.randomUUID());
+        submission.setDeclarationAccepted(true);
+        submissionRepo.save(submission);
+        if (criteria == null) return;
+
+        int total = criteria.values().stream().mapToInt(c -> (int) c[0]).sum();
+        int max = criteria.values().stream().mapToInt(c -> (int) c[1]).sum();
+        var mark = new Mark();
+        mark.setSubmissionId(submission.getId());
+        mark.setTotal(total);
+        mark.setMaxTotal(max);
+        mark.setMarkerVersion("test");
+        markRepo.save(mark);
+
+        criteria.forEach((key, c) -> {
+            var mc = new MarkCriterion();
+            mc.setMarkId(mark.getId());
+            mc.setCriterionKey(key);
+            mc.setAwarded((int) c[0]);
+            mc.setMax((int) c[1]);
+            mc.setReason((String) c[2]);
+            criterionRepo.save(mc);
+        });
+    }
+}

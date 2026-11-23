@@ -91,36 +91,31 @@ public class AnalyticsService {
     public record CommonMistake(String criterionKey, String reason, double share) {}
 
     public List<CommonMistake> commonMistakes(UUID assignmentId) {
-        // Collect all mark_criterion rows where awarded < max
-        List<Submission> submissions = submissionRepo.findAll().stream()
-                .filter(s -> {
-                    var a = attemptRepo.findById(s.getAttemptId()).orElse(null);
-                    return a != null && assignmentId.equals(a.getAssignmentId());
-                }).toList();
-
-        if (submissions.isEmpty()) return List.of();
+        // Two queries whatever the data size: this assignment's criterion rows, and its submission count.
+        long submissionCount = submissionRepo.countByAssignmentId(assignmentId);
+        if (submissionCount == 0) return List.of();
 
         Map<String, List<String>> lostByKey = new HashMap<>();
-        for (Submission s : submissions) {
-            markRepo.findBySubmissionId(s.getId()).ifPresent(mark -> {
-                criterionRepo.findByMarkId(mark.getId()).stream()
-                        .filter(c -> c.getAwarded() < c.getMax())
-                        .forEach(c -> lostByKey
-                                .computeIfAbsent(c.getCriterionKey(), k -> new ArrayList<>())
-                                .add(c.getReason()));
-            });
-        }
+        criterionRepo.findByAssignmentId(assignmentId).stream()
+                .filter(c -> c.getAwarded() < c.getMax())
+                .forEach(c -> lostByKey
+                        .computeIfAbsent(c.getCriterionKey(), k -> new ArrayList<>())
+                        .add(c.getReason()));
 
-        double total = submissions.size();
+        double total = submissionCount;
         return lostByKey.entrySet().stream()
-                .sorted(Comparator.comparingInt((Map.Entry<String, List<String>> e) -> e.getValue().size()).reversed())
+                // Most-lost first; ties by key so the order is stable
+                .sorted(Comparator.comparingInt((Map.Entry<String, List<String>> e) -> e.getValue().size()).reversed()
+                        .thenComparing(Map.Entry::getKey))
                 .limit(5)
                 .map(e -> {
                     // Most common reason
                     String topReason = e.getValue().stream()
                             .collect(Collectors.groupingBy(r -> r, Collectors.counting()))
                             .entrySet().stream()
-                            .max(Map.Entry.comparingByValue())
+                            // Most frequent reason; ties go to the alphabetically first
+                            .max(Map.Entry.<String, Long>comparingByValue()
+                                    .thenComparing(Map.Entry.comparingByKey(Comparator.reverseOrder())))
                             .map(Map.Entry::getKey).orElse("");
                     return new CommonMistake(e.getKey(), topReason, e.getValue().size() / total);
                 })
@@ -141,17 +136,11 @@ public class AnalyticsService {
         return h;
     }
 
-    private Map<String, Double> criterionAverages(UUID assignmentId) {
-        Map<String, List<Integer>> byKey = new HashMap<>();
-        submissionRepo.findAll().stream()
-                .filter(s -> {
-                    var a = attemptRepo.findById(s.getAttemptId()).orElse(null);
-                    return a != null && assignmentId.equals(a.getAssignmentId());
-                })
-                .forEach(s -> markRepo.findBySubmissionId(s.getId()).ifPresent(mark ->
-                        criterionRepo.findByMarkId(mark.getId()).forEach(c ->
-                                byKey.computeIfAbsent(c.getCriterionKey(), k -> new ArrayList<>())
-                                        .add(c.getAwarded()))));
+    Map<String, Double> criterionAverages(UUID assignmentId) {
+        // One query for this assignment's criterion rows (was: every submission on the platform, then N+1)
+        Map<String, List<Integer>> byKey = new TreeMap<>();
+        criterionRepo.findByAssignmentId(assignmentId).forEach(c ->
+                byKey.computeIfAbsent(c.getCriterionKey(), k -> new ArrayList<>()).add(c.getAwarded()));
         Map<String, Double> avgs = new LinkedHashMap<>();
         byKey.forEach((k, v) -> avgs.put(k, v.stream().mapToInt(i -> i).average().orElse(0)));
         return avgs;
