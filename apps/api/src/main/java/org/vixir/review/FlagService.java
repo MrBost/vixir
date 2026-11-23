@@ -68,17 +68,9 @@ public class FlagService {
     /** Raise OUTLIER_RESULT when implied value > 3 MADs from class median (Req 11.2). */
     @Transactional
     public void checkOutlier(UUID submissionId, UUID assignmentId) {
-        // Collect all marks for this assignment
-        List<Submission> submissions = submissionRepo.findAll().stream()
-                .filter(s -> {
-                    var a = attemptRepo.findById(s.getAttemptId()).orElse(null);
-                    return a != null && assignmentId.equals(a.getAssignmentId());
-                })
-                .toList();
-
-        List<Double> scores = submissions.stream()
-                .map(s -> markRepo.findBySubmissionId(s.getId()).map(m -> (double) m.getTotal()).orElse(null))
-                .filter(v -> v != null)
+        // All mark totals for this assignment in one query (was: every submission on the platform, then N+1)
+        List<Double> scores = markRepo.findTotalsByAssignmentId(assignmentId).stream()
+                .map(Integer::doubleValue)
                 .sorted()
                 .toList();
 

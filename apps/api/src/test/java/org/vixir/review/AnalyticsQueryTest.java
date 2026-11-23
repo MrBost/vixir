@@ -37,6 +37,8 @@ import org.vixir.submission.SubmissionRepository;
 class AnalyticsQueryTest extends BaseIntegrationTest {
 
     @Autowired AnalyticsService analytics;
+    @Autowired FlagService flagService;
+    @Autowired ReviewFlagRepository flagRepo;
     @Autowired EntityManagerFactory emf;
     @Autowired InstitutionRepository institutionRepo;
     @Autowired SchoolClassRepository classRepo;
@@ -128,6 +130,34 @@ class AnalyticsQueryTest extends BaseIntegrationTest {
         assertThat(after).isLessThanOrEqualTo(3); // count + criteria (mistakes) + criteria (averages)
     }
 
+    @Test
+    void outlierIsFlaggedFromThisAssignmentsScoresOnly() {
+        var outlierAssignment = assignment(assignmentA.getClassId());
+        // Class scores 10-12 out of 20, and one 1/20: median 11, MAD 1, so 1/20 is 10 MADs out
+        for (int score : new int[]{10, 10, 11, 11, 12, 12}) {
+            submit(outlierAssignment, criteria("score", score, 20, "r"));
+        }
+        UUID low = submit(outlierAssignment, criteria("score", 1, 20, "r"));
+        UUID normal = submit(outlierAssignment, criteria("score", 12, 20, "r"));
+
+        flagService.checkOutlier(low, outlierAssignment.getId());
+        flagService.checkOutlier(normal, outlierAssignment.getId());
+
+        assertThat(flagRepo.findBySubmissionId(low)).extracting(ReviewFlag::getType).containsExactly("OUTLIER_RESULT");
+        assertThat(flagRepo.findBySubmissionId(normal)).isEmpty();
+    }
+
+    @Test
+    void outlierCheckQueryCountDoesNotGrowWithOtherAssignments() {
+        UUID sub = submit(assignmentA, criteria("sig_figs", 4, 5, "r", "graph", 4, 4, "r"));
+        long before = queriesFor(() -> flagService.checkOutlier(sub, assignmentA.getId()));
+        for (int i = 0; i < 10; i++) {
+            submit(assignmentB, criteria("sig_figs", 1, 5, "x", "graph", 1, 4, "y"));
+        }
+        long after = queriesFor(() -> flagService.checkOutlier(sub, assignmentA.getId()));
+        assertThat(after).isEqualTo(before);
+    }
+
     // ---- helpers ----
 
     private long queriesFor(Runnable action) {
@@ -165,7 +195,7 @@ class AnalyticsQueryTest extends BaseIntegrationTest {
     }
 
     /** One student's submission for the assignment, marked with the given criteria (null = not marked yet). */
-    private void submit(Assignment assignment, Map<String, Object[]> criteria) {
+    private UUID submit(Assignment assignment, Map<String, Object[]> criteria) {
         var attempt = new Attempt();
         attempt.setUserId(registerUserId("STUDENT"));
         attempt.setAssignmentId(assignment.getId());
@@ -182,7 +212,7 @@ class AnalyticsQueryTest extends BaseIntegrationTest {
         submission.setReadingsHash("hash-" + UUID.randomUUID());
         submission.setDeclarationAccepted(true);
         submissionRepo.save(submission);
-        if (criteria == null) return;
+        if (criteria == null) return submission.getId();
 
         int total = criteria.values().stream().mapToInt(c -> (int) c[0]).sum();
         int max = criteria.values().stream().mapToInt(c -> (int) c[1]).sum();
@@ -202,5 +232,6 @@ class AnalyticsQueryTest extends BaseIntegrationTest {
             mc.setReason((String) c[2]);
             criterionRepo.save(mc);
         });
+        return submission.getId();
     }
 }
