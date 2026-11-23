@@ -21,9 +21,11 @@ import org.springframework.web.bind.annotation.*;
 public class VixController {
 
     private final VixSessionService sessionService;
+    private final org.vixir.experiment.TourService tourService;
 
-    public VixController(VixSessionService sessionService) {
+    public VixController(VixSessionService sessionService, org.vixir.experiment.TourService tourService) {
         this.sessionService = sessionService;
+        this.tourService = tourService;
     }
 
     /** Bootstrap a Vix session (Req 13.1). */
@@ -52,13 +54,14 @@ public class VixController {
     }
 
     /** Scripted tours — public, cacheable (Req 13.7). */
-    @Operation(summary = "Get the scripted tour for a screen", description = "Public, cacheable for 1 hour. Placeholder: steps is currently always empty.")
+    @Operation(summary = "Get the scripted tour for a screen", description = "Public, cacheable for 1 hour. Steps come from the tours section of the latest published experiment config. Pass experimentId to choose an experiment; otherwise the first published experiment (by id) with a tour for the screen is used. 404 TOUR_NOT_FOUND when no experiment has one.")
     @SecurityRequirements()
     @GetMapping("/tours/{screenCode}")
-    ResponseEntity<Map<String, String>> tour(@PathVariable String screenCode) {
-        // Tours are served from experiment configs; placeholder response for now.
+    ResponseEntity<org.vixir.experiment.TourService.Tour> tour(
+            @PathVariable String screenCode,
+            @RequestParam(required = false) String experimentId) {
         return ResponseEntity.ok()
                 .header("Cache-Control", "public, max-age=3600")
-                .body(Map.of("screenCode", screenCode, "steps", "[]"));
+                .body(tourService.tour(screenCode, experimentId));
     }
 }

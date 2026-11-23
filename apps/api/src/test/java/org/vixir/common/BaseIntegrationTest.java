@@ -20,7 +20,10 @@ import org.testcontainers.containers.PostgreSQLContainer;
                 "vixir.jwt-secret=test-only-jwt-secret-0123456789abcdef0123",
                 "vixir.service-secret=test-only-service-secret-0123456789abcdef",
                 // Every test registers from 127.0.0.1 in one shared context; the default 10/min would trip.
-                "vixir.auth-rate-limit-per-minute=10000"
+                "vixir.auth-rate-limit-per-minute=10000",
+                "LIVEKIT_API_KEY=test-livekit-key",
+                "LIVEKIT_API_SECRET=test-only-livekit-secret-0123456789abcdef",
+                "LIVEKIT_URL=wss://livekit.test"
         })
 public abstract class BaseIntegrationTest {
 

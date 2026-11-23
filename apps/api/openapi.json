@@ -1056,13 +1056,21 @@
                     "Vix"
                 ],
                 "summary": "Get the scripted tour for a screen",
-                "description": "Public, cacheable for 1 hour. Placeholder: steps is currently always empty.",
+                "description": "Public, cacheable for 1 hour. Steps come from the tours section of the latest published experiment config. Pass experimentId to choose an experiment; otherwise the first published experiment (by id) with a tour for the screen is used. 404 TOUR_NOT_FOUND when no experiment has one.",
                 "operationId": "tour",
                 "parameters": [
                     {
                         "name": "screenCode",
                         "in": "path",
                         "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "experimentId",
+                        "in": "query",
+                        "required": false,
                         "schema": {
                             "type": "string"
                         }
@@ -1074,10 +1082,7 @@
                         "content": {
                             "*/*": {
                                 "schema": {
-                                    "type": "object",
-                                    "additionalProperties": {
-                                        "type": "string"
-                                    }
+                                    "$ref": "#/components/schemas/Tour"
                                 }
                             }
                         }
@@ -2106,6 +2111,38 @@
                     "createdAt": {
                         "type": "string",
                         "format": "date-time"
+                    }
+                }
+            },
+            "Tour": {
+                "type": "object",
+                "properties": {
+                    "screenCode": {
+                        "type": "string"
+                    },
+                    "experimentId": {
+                        "type": "string"
+                    },
+                    "experimentVersion": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "steps": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/TourStep"
+                        }
+                    }
+                }
+            },
+            "TourStep": {
+                "type": "object",
+                "properties": {
+                    "regionId": {
+                        "type": "string"
+                    },
+                    "say": {
+                        "type": "string"
                     }
                 }
             },

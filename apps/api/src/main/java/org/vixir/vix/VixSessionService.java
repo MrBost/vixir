@@ -63,9 +63,14 @@ public class VixSessionService {
         }
 
         // Req 13.2 — exam mode forbidden
+        Attempt attempt = null;
         if (req.attemptId() != null) {
-            Attempt attempt = attemptRepo.findById(req.attemptId())
+            attempt = attemptRepo.findById(req.attemptId())
                     .orElseThrow(() -> ApiException.notFound("ATTEMPT_NOT_FOUND", "Attempt not found"));
+            // Req 2.2 — only your own attempt; same 404 so existence isn't revealed
+            if (!userId.equals(attempt.getUserId())) {
+                throw ApiException.notFound("ATTEMPT_NOT_FOUND", "Attempt not found");
+            }
             if ("EXAM".equals(attempt.getMode())) {
                 throw ApiException.conflict("VIX_DISABLED_EXAM", "Vix is not available in exam mode");
             }
@@ -95,7 +100,15 @@ public class VixSessionService {
         session.setRoom(tk.room());
         sessionRepo.save(session);
 
-        String tourUrl = "/api/v1/vix/tours/" + req.screen();
+        // Scripted fallback tour for this screen, pinned to the attempt's experiment when there is one
+        String tourUrl = null;
+        if (req.screen() != null && !req.screen().isBlank()) {
+            tourUrl = "/api/v1/vix/tours/" + java.net.URLEncoder.encode(req.screen(), java.nio.charset.StandardCharsets.UTF_8)
+                    .replace("+", "%20");
+            if (attempt != null) {
+                tourUrl += "?experimentId=" + java.net.URLEncoder.encode(attempt.getExperimentId(), java.nio.charset.StandardCharsets.UTF_8);
+            }
+        }
         return new VixBootstrap(session.getId(), tk.livekitUrl(), tk.token(),
                 tk.room(), session.getMode(), tourUrl);
     }
